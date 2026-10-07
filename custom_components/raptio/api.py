@@ -12,6 +12,14 @@ from .const import API_URL, ENDPOINTS, LOGGER, STATE_FIELDS, TOKEN_URL
 TIMEOUT = aiohttp.ClientTimeout(total=30)
 
 
+def _describe(err: Exception) -> str:
+    """Summarise an error for logs. Never use repr(): aiohttp includes request headers,
+    and with them the bearer token, in the repr of response errors."""
+    if isinstance(err, aiohttp.ClientResponseError):
+        return f"HTTP {err.status}"
+    return type(err).__name__
+
+
 class RaptApiError(Exception):
     """The RAPT API could not be reached or returned an error."""
 
@@ -50,7 +58,7 @@ class RaptClient:
             self._token = body["access_token"]
             self._token_expiry = time.monotonic() + int(body.get("expires_in", 3600))
         except (aiohttp.ClientError, TimeoutError, KeyError, TypeError, ValueError) as err:
-            raise RaptApiError(f"Token request failed: {err!r}") from err
+            raise RaptApiError(f"Token request failed: {_describe(err)}") from None
         return self._token
 
     async def _get(self, endpoint: str, token: str) -> list[dict[str, Any]]:
@@ -64,7 +72,7 @@ class RaptClient:
                 resp.raise_for_status()
                 return await resp.json(content_type=None) or []
         except (aiohttp.ClientError, TimeoutError, ValueError) as err:
-            raise RaptApiError(f"{endpoint} failed: {err!r}") from err
+            raise RaptApiError(f"{endpoint} failed: {_describe(err)}") from None
 
     async def async_get_devices(self) -> dict[str, dict[str, Any]]:
         """Return every device on the account, keyed by device id."""
