@@ -1,0 +1,23 @@
+{
+  "entity": {
+    "sensor": {
+      "target_temperature": {
+        "default": "mdi:thermometer-chevron-up"
+      },
+      "gravity": {
+        "default": "mdi:flask-outline"
+      },
+      "gravity_velocity": {
+        "default": "mdi:trending-down"
+      }
+    },
+    "binary_sensor": {
+      "cooling": {
+        "default": "mdi:snowflake"
+      },
+      "heating": {
+        "default": "mdi:fire"
+      }
+    }
+  }
+}

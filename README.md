@@ -1,10 +1,16 @@
 # raptio
 
-A small headless container that polls the KegLand [RAPT](https://rapt.io) cloud API and publishes
-your devices to MQTT with Home Assistant auto-discovery.
+Gets your KegLand [RAPT](https://rapt.io) brewing devices into Home Assistant by polling the RAPT
+cloud API. There are two ways to run it; pick one:
+
+- **Home Assistant integration (HACS)**: runs inside HA, set up from the UI, no MQTT needed.
+- **Docker container**: a headless poller that publishes to MQTT with HA auto-discovery.
+
+Running both against the same account just doubles your API calls.
 
 Based on [MetalOctopus/RAPT-to-MQTT](https://github.com/MetalOctopus/RAPT-to-MQTT), stripped down
-to the poller: no web UI, no database, no Tilt handling. Configuration is environment variables only.
+to the poller: no web UI, no database, no Tilt handling. Read-only: it does not set target
+temperatures.
 
 ## What you get in Home Assistant
 
@@ -19,21 +25,28 @@ Each RAPT device appears as its own device, with whichever of these the API repo
 | Connection | whether RAPT sees the device as connected |
 
 Polled device types: temperature controllers, Pill hydrometers, fermentation chambers, BrewZillas,
-stills and bonded BLE devices. Each device's state is published as retained JSON to
-`rapt2mqtt/<device id>/state`. Only an allowlist of fields (`STATE_FIELDS` in `rapt2mqtt.py`) is
-published, not the raw API record, which also carries serial numbers and MAC addresses.
+stills and bonded BLE devices.
 
-Read-only: it does not set target temperatures.
+Either way you need an API secret: in the RAPT portal, go to **My Account > API Secrets** and
+create one. It is not your account password.
 
-## Run
+## Option 1: Home Assistant integration (HACS)
 
-1. In the RAPT portal, create an API secret under **My Account > API Secrets**.
-2. Copy `.env.example` to `.env` and fill it in.
-3. `docker compose up -d`
+1. In HACS, open the menu > **Custom repositories**, add `https://github.com/duarte-hub/raptio`
+   with type **Integration**.
+2. Install **RAPT Cloud** and restart Home Assistant.
+3. Go to **Settings > Devices & services > Add integration**, search for **RAPT Cloud**, and enter
+   your RAPT email, API secret and poll interval.
+
+The poll interval (default 300 s, minimum 60 s) can be changed later with **Configure** on the
+integration. If RAPT starts rejecting the secret, HA prompts you to enter a new one.
+
+## Option 2: Docker container (MQTT)
+
+1. Copy `.env.example` to `.env` and fill it in.
+2. `docker compose up -d`
 
 Home Assistant needs the MQTT integration with discovery enabled (the default).
-
-## Configuration
 
 | Variable | Default | |
 |---|---|---|
@@ -48,10 +61,12 @@ Home Assistant needs the MQTT integration with discovery enabled (the default).
 | `HA_DISCOVERY_PREFIX` | `homeassistant` | |
 | `LOG_LEVEL` | `INFO` | |
 
+Each device's state is published as retained JSON to `rapt2mqtt/<device id>/state`. Only an
+allowlist of fields (`STATE_FIELDS` in `rapt2mqtt.py`) is published, not the raw API record, which
+also carries serial numbers and MAC addresses.
+
 Entities go unavailable if the container stops, or if the RAPT API stops answering for three
 poll intervals.
 
-## Image
-
-Built for `linux/amd64` and `linux/arm64` by GitHub Actions on every push to `main` and published
-to `ghcr.io/duarte-hub/raptio`.
+The image is built for `linux/amd64` and `linux/arm64` by GitHub Actions on every push to `main`
+and published to `ghcr.io/duarte-hub/raptio`.

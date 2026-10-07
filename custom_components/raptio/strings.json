@@ -1,0 +1,66 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect your RAPT account",
+        "description": "Create an API secret in the RAPT portal under My Account > API Secrets. It is not your account password.",
+        "data": {
+          "email": "RAPT account email",
+          "api_secret": "API secret",
+          "scan_interval": "Poll interval"
+        },
+        "data_description": {
+          "scan_interval": "How often to poll the RAPT API. RAPT tracks API usage, so keep this at 60 seconds or more."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate RAPT",
+        "description": "The API secret for {email} was rejected. Enter a new one.",
+        "data": {
+          "api_secret": "API secret"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "RAPT rejected the email or API secret.",
+      "cannot_connect": "Could not reach the RAPT API."
+    },
+    "abort": {
+      "already_configured": "This RAPT account is already configured.",
+      "reauth_successful": "Re-authentication was successful."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "scan_interval": "Poll interval"
+        },
+        "data_description": {
+          "scan_interval": "How often to poll the RAPT API. RAPT tracks API usage, so keep this at 60 seconds or more."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "target_temperature": {
+        "name": "Target temperature"
+      },
+      "gravity": {
+        "name": "Gravity"
+      },
+      "gravity_velocity": {
+        "name": "Gravity velocity"
+      }
+    },
+    "binary_sensor": {
+      "cooling": {
+        "name": "Cooling"
+      },
+      "heating": {
+        "name": "Heating"
+      }
+    }
+  }
+}

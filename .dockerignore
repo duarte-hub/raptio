@@ -6,3 +6,5 @@ __pycache__
 *.pyc
 *.md
 LICENSE
+custom_components/
+hacs.json
