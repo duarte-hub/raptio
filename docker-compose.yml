@@ -1,0 +1,7 @@
+services:
+  raptio:
+    image: ghcr.io/duarte-hub/raptio:latest
+    # build: .   # uncomment to build locally instead of pulling
+    container_name: raptio
+    env_file: .env
+    restart: unless-stopped
