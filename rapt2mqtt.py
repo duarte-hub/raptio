@@ -28,6 +28,14 @@ ENDPOINTS = {
     "BondedDevices/GetBondedDevices": "RAPT Bonded Device",
 }
 
+# Only these API fields are published; the raw record also carries serials, MAC
+# addresses and account-level settings that have no business on the broker.
+STATE_FIELDS = (
+    "id", "name", "temperature", "targetTemperature", "tempUnit", "gravity", "gravityVelocity",
+    "battery", "rssi", "connectionState", "lastActivityTime", "firmwareVersion",
+    "coolingEnabled", "coolingRunTime", "heatingEnabled", "heatingRunTime", "pidEnabled",
+)
+
 MEASUREMENT = {"state_class": "measurement"}
 DIAGNOSTIC = {"entity_category": "diagnostic"}
 
@@ -134,7 +142,7 @@ class Bridge:
         log.info("Published %d device(s).", count)
 
     def _build_state(self, device):
-        state = {k: v for k, v in device.items() if k != "telemetry"}
+        state = {k: device[k] for k in STATE_FIELDS if k in device}
 
         # The API reports gravity as SG x 1000 (e.g. 1048.2); normalise to 1.0482.
         gravity = state.get("gravity")
@@ -213,6 +221,7 @@ def load_config():
         "mqtt_port": int(os.environ.get("MQTT_PORT", 1883)),
         "mqtt_username": os.environ.get("MQTT_USERNAME", ""),
         "mqtt_password": os.environ.get("MQTT_PASSWORD", ""),
+        "mqtt_tls": os.environ.get("MQTT_TLS", "").lower() in ("true", "1", "yes"),
         # RAPT tracks API usage and can revoke access for abuse; don't go below 60s
         "poll_interval": max(60, int(os.environ.get("POLL_INTERVAL", 300))),
         "base_topic": os.environ.get("BASE_TOPIC", "rapt2mqtt").strip("/"),
@@ -250,6 +259,8 @@ def main():
     client.on_disconnect = on_disconnect
     if cfg["mqtt_username"]:
         client.username_pw_set(cfg["mqtt_username"], cfg["mqtt_password"])
+    if cfg["mqtt_tls"]:
+        client.tls_set()
     client.will_set(bridge.status_topic, "offline", qos=1, retain=True)
     client.reconnect_delay_set(min_delay=1, max_delay=120)
 

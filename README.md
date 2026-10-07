@@ -19,8 +19,9 @@ Each RAPT device appears as its own device, with whichever of these the API repo
 | Connection | whether RAPT sees the device as connected |
 
 Polled device types: temperature controllers, Pill hydrometers, fermentation chambers, BrewZillas,
-stills and bonded BLE devices. The full API record for each device (minus telemetry history) is
-published as JSON to `rapt2mqtt/<device id>/state`, so you can template anything else out of it.
+stills and bonded BLE devices. Each device's state is published as retained JSON to
+`rapt2mqtt/<device id>/state`. Only an allowlist of fields (`STATE_FIELDS` in `rapt2mqtt.py`) is
+published, not the raw API record, which also carries serial numbers and MAC addresses.
 
 Read-only: it does not set target temperatures.
 
@@ -41,6 +42,7 @@ Home Assistant needs the MQTT integration with discovery enabled (the default).
 | `MQTT_HOST` | required | |
 | `MQTT_PORT` | `1883` | |
 | `MQTT_USERNAME` / `MQTT_PASSWORD` | empty | |
+| `MQTT_TLS` | `false` | verify against system CAs; use with port 8883. Without it, MQTT credentials travel in cleartext |
 | `POLL_INTERVAL` | `300` | seconds, minimum 60 |
 | `BASE_TOPIC` | `rapt2mqtt` | |
 | `HA_DISCOVERY_PREFIX` | `homeassistant` | |
